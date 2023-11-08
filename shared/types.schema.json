@@ -1,0 +1,99 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "Movie": {
+            "additionalProperties": false,
+            "properties": {
+                "genre_ids": {
+                    "items": {
+                        "type": "number"
+                    },
+                    "type": "array"
+                },
+                "movieId": {
+                    "type": "number"
+                },
+                "original_language": {
+                    "type": "string"
+                },
+                "overview": {
+                    "type": "string"
+                },
+                "popularity": {
+                    "type": "number"
+                },
+                "release_date": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "video": {
+                    "type": "boolean"
+                },
+                "vote_average": {
+                    "type": "number"
+                },
+                "vote_count": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "genre_ids",
+                "movieId",
+                "original_language",
+                "overview",
+                "popularity",
+                "release_date",
+                "title",
+                "video",
+                "vote_average",
+                "vote_count"
+            ],
+            "type": "object"
+        },
+        "MovieCast": {
+            "additionalProperties": false,
+            "properties": {
+                "actorName": {
+                    "type": "string"
+                },
+                "movieId": {
+                    "type": "number"
+                },
+                "roleDescription": {
+                    "type": "string"
+                },
+                "roleName": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "actorName",
+                "movieId",
+                "roleDescription",
+                "roleName"
+            ],
+            "type": "object"
+        },
+        "MovieCastMemberQueryParams": {
+            "additionalProperties": false,
+            "properties": {
+                "actorName": {
+                    "type": "string"
+                },
+                "movieId": {
+                    "type": "string"
+                },
+                "roleName": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "movieId"
+            ],
+            "type": "object"
+        }
+    }
+}
+
