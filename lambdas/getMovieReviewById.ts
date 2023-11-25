@@ -1,55 +1,55 @@
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
+
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
-import Ajv from "ajv";
-import schema from "../shared/types.schema.json";
-
-const ajv = new Ajv();
-const isValidBodyParams = ajv.compile(schema.definitions["Movie"] || {});
-
+import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 
 const ddbDocClient = createDDbDocClient();
 
-export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
+export const handler: APIGatewayProxyHandlerV2 = async (event, context) => { // Note change
   try {
-    // Print Event
     console.log("Event: ", event);
-    const body = event.body ? JSON.parse(event.body) : undefined;
-    if (!body) {
+    // const parameters = event?.queryStringParameters;
+    // const movieId = parameters ? parseInt(parameters.movieId) : undefined;
+    const parameters  = event?.pathParameters;
+    const movieId = parameters ? parseInt(parameters.movieId) : undefined;
+
+    if (!movieId) {
       return {
-        statusCode: 500,
+        statusCode: 404,
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify({ message: "Missing request body" }),
+        body: JSON.stringify({ Message: "Missing movie Id" }),
       };
     }
-       // NEW
-    if (!isValidBodyParams(body)) {
-        return {
-          statusCode: 500,
-          headers: {
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({
-            message: `Incorrect type. Must match Movie schema`,
-            schema: schema.definitions["Movie"],
-          }),
-        };
-      }
 
     const commandOutput = await ddbDocClient.send(
-      new PutCommand({
+      new GetCommand({
         TableName: process.env.TABLE_NAME,
-        Item: body,
+        Key: { movieId: movieId },
       })
     );
+    console.log("GetCommand response: ", commandOutput);
+    if (!commandOutput.Item) {
+      return {
+        statusCode: 404,
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ Message: "Invalid movie Id" }),
+      };
+    }
+    const body = {
+      data: commandOutput.Item,
+    };
+
+    // Return Response
     return {
-      statusCode: 201,
+      statusCode: 200,
       headers: {
         "content-type": "application/json",
       },
-      body: JSON.stringify({ message: "Movie added" }),
+      body: JSON.stringify(body),
     };
   } catch (error: any) {
     console.log(JSON.stringify(error));

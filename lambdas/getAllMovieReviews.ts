@@ -1,36 +1,20 @@
-import { APIGatewayProxyHandlerV2 } from "aws-lambda";
-
+import { APIGatewayProxyHandlerV2 } from "aws-lambda";  // CHANGED
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb";
 
 const ddbDocClient = createDDbDocClient();
 
-export const handler: APIGatewayProxyHandlerV2 = async (event, context) => { // Note change
+export const handler: APIGatewayProxyHandlerV2 = async (event, context) => { // CHANGED
   try {
+    // Print Event
     console.log("Event: ", event);
-    // const parameters = event?.queryStringParameters;
-    // const movieId = parameters ? parseInt(parameters.movieId) : undefined;
-    const parameters  = event?.pathParameters;
-    const movieId = parameters ? parseInt(parameters.movieId) : undefined;
-
-    if (!movieId) {
-      return {
-        statusCode: 404,
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({ Message: "Missing movie Id" }),
-      };
-    }
 
     const commandOutput = await ddbDocClient.send(
-      new GetCommand({
+      new ScanCommand({
         TableName: process.env.TABLE_NAME,
-        Key: { movieId: movieId },
       })
     );
-    console.log("GetCommand response: ", commandOutput);
-    if (!commandOutput.Item) {
+    if (!commandOutput.Items) {
       return {
         statusCode: 404,
         headers: {
@@ -40,7 +24,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => { // 
       };
     }
     const body = {
-      data: commandOutput.Item,
+      data: commandOutput.Items,
     };
 
     // Return Response
@@ -75,4 +59,5 @@ function createDDbDocClient() {
   };
   const translateConfig = { marshallOptions, unmarshallOptions };
   return DynamoDBDocumentClient.from(ddbClient, translateConfig);
+  
 }
