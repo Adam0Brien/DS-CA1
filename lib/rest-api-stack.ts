@@ -80,7 +80,22 @@ export class RestAPIStack extends cdk.Stack {
         },
       }
       );
-        
+
+      const getMovieReviewByReviewerNameFn = new lambdanode.NodejsFunction(
+        this,
+        "GetMovieReviewByReviewerNameFn",
+        {
+          architecture: lambda.Architecture.ARM_64,
+          runtime: lambda.Runtime.NODEJS_16_X,
+          entry: `${__dirname}/../lambdas/getMovieReviewsByReviewer.ts`,
+          timeout: cdk.Duration.seconds(10),
+          memorySize: 128,
+          environment: {
+            TABLE_NAME: moviesTable.tableName,
+            REGION: 'eu-west-1',
+          },
+        }
+        );
         new custom.AwsCustomResource(this, "moviesddbInitData", {
           onCreate: {
             service: "DynamoDB",
@@ -136,6 +151,7 @@ export class RestAPIStack extends cdk.Stack {
         movieReviewsTable.grantReadData(getAllMovieReviewsFn)
         movieReviewsTable.grantReadWriteData(addMovieReviewFn)
         movieReviewsTable.grantReadData(getMovieReviewByIdFn)
+        movieReviewsTable.grantReadData(getMovieReviewByReviewerNameFn)
         
          // REST API 
         const api = new apig.RestApi(this, "RestAPI", {
@@ -151,22 +167,18 @@ export class RestAPIStack extends cdk.Stack {
             allowOrigins: ["*"],
           },
         });
- 
+
         const moviesEndpoint = api.root.addResource("movies");
-
-        const movieEndpoint = moviesEndpoint.addResource("{movieId}");
-
+        const movieEndpoint = moviesEndpoint.addResource("movieId");
+        const reviewByNameEndpoint = movieEndpoint.addResource("reviewByName");
         const reviewEndpoint = movieEndpoint.addResource("reviews");
-
-        const allReviewsEndpoint= moviesEndpoint.addResource("reviews");
-
+        const allReviewsEndpoint = moviesEndpoint.addResource("allReviews");
 
         moviesEndpoint.addMethod(
           "GET",
           new apig.LambdaIntegration(getAllMoviesFn, { proxy: true })
         );
 
-        
         movieEndpoint.addMethod(
           "GET",
           new apig.LambdaIntegration(getMovieByIdFn, { proxy: true })
@@ -182,10 +194,11 @@ export class RestAPIStack extends cdk.Stack {
           new apig.LambdaIntegration(getAllMovieReviewsFn, {proxy: true})
         );
 
-        reviewEndpoint.addMethod(
-          "GET",
-          new apig.LambdaIntegration(getMovieReviewByIdFn, {proxy: true})
 
+        
+        reviewByNameEndpoint.addMethod(
+          "GET",
+          new apig.LambdaIntegration(getMovieReviewByReviewerNameFn, { proxy: true })
         );
 
       }
