@@ -11,7 +11,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => { // 
     // const parameters = event?.queryStringParameters;
     // const movieId = parameters ? parseInt(parameters.movieId) : undefined;
     const parameters  = event?.pathParameters;
-    const movieId = parameters ? parseInt(parameters.movieId) : undefined;
+    const movieId = parameters?.movieId ? parseInt(parameters.movieId) : undefined;
 
     if (!movieId) {
       return {
