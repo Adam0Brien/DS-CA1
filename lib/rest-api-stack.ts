@@ -176,7 +176,7 @@ export class RestAPIStack extends cdk.Stack {
         const movieEndpoint = moviesEndpoint.addResource("{movieId}");
         const reviewsEndpoint = moviesEndpoint.addResource("reviews"); //get all reviews
         const reviewEndpoint = movieEndpoint.addResource("reviews")
-        const reviewByNameEndpoint = reviewEndpoint.addResource("reviewByName");
+        const reviewByNameEndpoint = reviewEndpoint.addResource("{reviewerName}");
 
         //working
         moviesEndpoint.addMethod(
